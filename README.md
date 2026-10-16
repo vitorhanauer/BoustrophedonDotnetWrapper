@@ -89,6 +89,14 @@ cmake --build artifacts/core-tests --parallel 2
 ctest --test-dir artifacts/core-tests --output-on-failure
 ```
 
+O diagnóstico de memória roda um consumidor da API sob Valgrind em um container separado:
+
+```sh
+./scripts/check-memory.sh 1000
+```
+
+O relatório fica em `artifacts/memory/valgrind.xml`. Consulte [os resultados e limites da validação](docs/memory-validation.md).
+
 ## Contrato e falhas
 
 O método é síncrono. Os arrays de entrada são preservados; não os modifique durante a chamada. Cada retorno é um array gerenciado independente, e toda memória do resultado nativo é liberada pelo wrapper. Chamadas independentes podem ocorrer em paralelo.
