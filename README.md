@@ -128,3 +128,7 @@ O projeto [examples/ConsoleExample](examples/ConsoleExample) mostra uma chamada 
 ```sh
 dotnet run --project examples/ConsoleExample/ConsoleExample.csproj
 ```
+
+## Licença
+
+Distribuído sob a licença [MIT](LICENSE).

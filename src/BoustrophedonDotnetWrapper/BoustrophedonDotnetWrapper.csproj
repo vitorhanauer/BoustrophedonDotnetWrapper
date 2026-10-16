@@ -9,10 +9,12 @@
     <Version>0.1.1</Version>
     <Description>Cartesian coverage paths using the Boustrophedon C core. Linux x64.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <NativeLibraryPath>$(MSBuildThisFileDirectory)../../artifacts/native/linux-x64/libboustrophedon.so</NativeLibraryPath>
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" />
     <None Include="../../docs/memory-validation.md" Pack="true" PackagePath="docs/" />
     <None Include="../../artifacts/native/linux-x64/build-info.txt" Pack="true" PackagePath="build-info/" />
     <None Include="$(NativeLibraryPath)" Link="libboustrophedon.so"
