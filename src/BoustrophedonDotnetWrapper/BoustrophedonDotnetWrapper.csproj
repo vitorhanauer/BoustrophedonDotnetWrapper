@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>BoustrophedonDotnetWrapper</PackageId>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <Description>Cartesian coverage paths using the Boustrophedon C core. Linux x64.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <NativeLibraryPath>$(MSBuildThisFileDirectory)../../artifacts/native/linux-x64/libboustrophedon.so</NativeLibraryPath>
