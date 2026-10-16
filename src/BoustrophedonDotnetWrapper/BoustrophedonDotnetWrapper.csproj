@@ -13,11 +13,15 @@
   </PropertyGroup>
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="../../artifacts/native/linux-x64/build-info.txt" Pack="true" PackagePath="build-info/" />
     <None Include="$(NativeLibraryPath)" Link="libboustrophedon.so"
           CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"
           Pack="true" PackagePath="runtimes/linux-x64/native/" />
   </ItemGroup>
   <Target Name="RequireNativeLibrary" BeforeTargets="PrepareForBuild;GenerateNuspec">
     <Error Condition="!Exists('$(NativeLibraryPath)')" Text="Native library missing. Run scripts/build-native.sh first." />
+  </Target>
+  <Target Name="ValidatePackagedNativeLibrary" BeforeTargets="GenerateNuspec">
+    <Exec Command="bash &quot;$(MSBuildThisFileDirectory)../../scripts/check-native.sh&quot;" />
   </Target>
 </Project>

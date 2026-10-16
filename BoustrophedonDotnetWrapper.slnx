@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/examples/">
+    <Project Path="examples/ConsoleExample/ConsoleExample.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/BoustrophedonDotnetWrapper/BoustrophedonDotnetWrapper.csproj" />
   </Folder>
