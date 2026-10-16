@@ -23,10 +23,18 @@ public static class Boustrophedon
             throw new ArgumentOutOfRangeException(nameof(width), "Width must be finite and positive.");
         if (!double.IsFinite(overlapPercent) || overlapPercent < 0 || overlapPercent >= 100)
             throw new ArgumentOutOfRangeException(nameof(overlapPercent), "Overlap must be finite and in [0, 100).");
+        ValidatePoint(start, nameof(start));
+        ValidatePoint(end, nameof(end));
+        ValidatePolygon(area, nameof(area));
 
         int pointCount = area.Length;
         foreach (Point[] obstacle in obstacles)
+        {
+            if (obstacle is null)
+                throw new ArgumentException("An obstacle polygon cannot be null.", nameof(obstacles));
+            ValidatePolygon(obstacle, nameof(obstacles));
             pointCount = checked(pointCount + obstacle.Length);
+        }
 
         var points = new NativePoint[pointCount];
         var polygons = new NativePolygon[obstacles.Length];
@@ -72,4 +80,18 @@ public static class Boustrophedon
     }
 
     private static NativePoint ToNative(Point point) => new() { X = point.X, Y = point.Y };
+
+    private static void ValidatePoint(Point point, string parameterName)
+    {
+        if (!double.IsFinite(point.X) || !double.IsFinite(point.Y))
+            throw new ArgumentException("Coordinates must be finite.", parameterName);
+    }
+
+    private static void ValidatePolygon(Point[] vertices, string parameterName)
+    {
+        if (vertices.Length < 3)
+            throw new ArgumentException("A polygon requires at least three vertices.", parameterName);
+        foreach (Point point in vertices)
+            ValidatePoint(point, parameterName);
+    }
 }
