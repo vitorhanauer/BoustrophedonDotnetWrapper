@@ -1,0 +1,3 @@
+[submodule "BoustrophedonCore"]
+	path = native/BoustrophedonCore
+	url = https://github.com/vitorhanauer/BoustrophedonCore.git
