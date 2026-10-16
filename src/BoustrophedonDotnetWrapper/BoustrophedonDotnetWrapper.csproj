@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>BoustrophedonDotnetWrapper</PackageId>
+    <Version>0.1.0</Version>
+    <Description>Cartesian coverage paths using the Boustrophedon C core. Linux x64.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <NativeLibraryPath>$(MSBuildThisFileDirectory)../../artifacts/native/linux-x64/libboustrophedon.so</NativeLibraryPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" />
+    <None Include="$(NativeLibraryPath)" Link="libboustrophedon.so"
+          CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"
+          Pack="true" PackagePath="runtimes/linux-x64/native/" />
+  </ItemGroup>
+  <Target Name="RequireNativeLibrary" BeforeTargets="PrepareForBuild;GenerateNuspec">
+    <Error Condition="!Exists('$(NativeLibraryPath)')" Text="Native library missing. Run scripts/build-native.sh first." />
+  </Target>
+</Project>
