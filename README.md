@@ -1,22 +1,22 @@
 # BoustrophedonDotnetWrapper
 
-Wrapper .NET 10 para gerar waypoints de cobertura usando o BoustrophedonCore. A API pública é `BoustrophedonDotnetWrapper.Boustrophedon.GenerateWaypoints(Point start, Point end, Point[] area, Point[][] obstacles, double width, double overlapPercent)`.
+A .NET 10 wrapper for generating coverage waypoints with BoustrophedonCore. The public API is `BoustrophedonDotnetWrapper.Boustrophedon.GenerateWaypoints(Point start, Point end, Point[] area, Point[][] obstacles, double width, double overlapPercent)`.
 
-`overlapPercent` deve estar no intervalo `[0, 100)`; 100 não é aceito porque elimina a distância entre faixas. `width` deve ser positivo e representa a largura total de atuação. A função devolve os pontos do percurso incluindo `start` e `end`.
+`overlapPercent` must be in `[0, 100)`; 100 is rejected because it eliminates the spacing between lanes. `width` must be positive and represents the full coverage width. The returned route includes both `start` and `end`.
 
-`area` deve conter os vértices de um polígono simples com pelo menos três pontos. `obstacles` pode ser vazio; quando usado, cada obstáculo deve ser um polígono sem interseção com os demais e estritamente dentro da área. Os pontos devem usar as mesmas unidades cartesianas. Entradas inválidas, falhas nativas e erros de alocação são comunicados como exceções .NET.
+`area` must describe a simple polygon with at least three vertices. `obstacles` may be empty; otherwise, each obstacle must be a polygon strictly inside the area and disjoint from every other obstacle. Coordinates and widths must use the same Cartesian units. Invalid inputs, native failures and allocation errors are reported as .NET exceptions.
 
-## Uso em um projeto .NET
+## Use in a .NET project
 
-Suporte inicial: .NET 10 em Linux x64 com glibc, usando Debian 12 como base de compilação. Alpine/musl, Windows, macOS e ARM64 não estão incluídos. O consumidor precisa do runtime .NET 10 e das bibliotecas de sistema glibc/libm; não precisa de CMake nem Docker.
+The package supports .NET 10 on Linux x64 with glibc, using Debian 12 as the build baseline. Alpine/musl, Windows, macOS and ARM64 are not included. Consumers need the .NET 10 runtime and the glibc/libm system libraries; they do not need CMake or Docker.
 
-Instale o pacote local no projeto consumidor:
+Install the local package in the consuming project:
 
 ```sh
-dotnet add package BoustrophedonDotnetWrapper --version 0.1.0 --source /caminho/absoluto/artifacts/packages
+dotnet add package BoustrophedonDotnetWrapper --version 0.1.3 --source /absolute/path/to/artifacts/packages
 ```
 
-Chame a API com `Point`, um tipo imutável de coordenadas `double`:
+Call the API using `Point`, an immutable value type with `double` coordinates:
 
 ```csharp
 using BoustrophedonDotnetWrapper;
@@ -27,61 +27,65 @@ Point[] route = Boustrophedon.GenerateWaypoints(
     [], width: 2, overlapPercent: 10);
 ```
 
-## Pré-requisitos
+## Prerequisites
 
 - .NET SDK 10.
-- Git e CMake para compilar localmente.
-- Docker para gerar a biblioteca distribuível baseada em Debian 12.
-- Submódulo `native/BoustrophedonCore` no commit `2d3af904cd785b558b9e7bd5fc9f4a7103f2042e`.
+- Git and CMake for local native builds.
+- Docker for building the distributable native library on Debian 12.
+- The `native/BoustrophedonCore` submodule at the commit pinned by this repository and its build scripts.
 
-Inicialize o submódulo após obter o repositório do wrapper:
+Initialize the submodule after cloning the wrapper:
 
 ```sh
 git submodule update --init --recursive
 ```
 
-O script valida o commit e exige o worktree do core limpo antes de compilar. Ele cria um arquivo temporário com `git archive` do commit fixado e compila apenas esse conteúdo. Alterações locais no core não são executadas.
+The build script checks the pinned commit and requires a clean core worktree. It uses `git archive` to create a temporary source tree from that commit and builds only those files. Local core modifications are not included.
 
-## Compilar a biblioteca nativa
+## Build the native library
 
-Para desenvolvimento, use o toolchain do host:
+For development, use the host toolchain:
 
 ```sh
 ./scripts/build-native.sh --mode=host
 ```
 
-Para distribuição, use o baseline Debian 12 x64:
+For distribution, use the Debian 12 x64 baseline:
 
 ```sh
 ./scripts/build-native.sh --mode=container
 ```
 
-Ambos geram o arquivo real `artifacts/native/linux-x64/libboustrophedon.so` e `build-info.txt`, com SHA-256 da biblioteca. A metadata do modo container identifica o commit e a imagem `debian:12-slim`; `scripts/pack.sh` sempre refaz essa biblioteca no container antes do pacote Release. `scripts/check-native.sh` valida esse vínculo e rejeita builds de host na distribuição.
+Both commands produce the actual library file at `artifacts/native/linux-x64/libboustrophedon.so` and a `build-info.txt` file containing its SHA-256 hash. Container metadata records the core commit and the `debian:12-slim` image. `scripts/pack.sh` always rebuilds the library in a container before creating the Release package. `scripts/check-native.sh` verifies this provenance and rejects host builds for distribution.
 
-## Gerar pacote NuGet
+## Create a NuGet package
 
 ```sh
 ./scripts/pack.sh
 ```
 
-O comando compila o projeto Release e grava os pacotes em `artifacts/packages/`. A biblioteca é incluída em `runtimes/linux-x64/native/libboustrophedon.so`, e a origem e o hash ficam em `build-info/build-info.txt`. A resolução nativa funciona sem `LD_LIBRARY_PATH`. Mesmo `dotnet pack` direto verifica a origem do binário e rejeita artefatos de desenvolvimento gerados no host.
+The script builds the Release project and writes packages to `artifacts/packages/`. The native library is included at `runtimes/linux-x64/native/libboustrophedon.so`; its provenance and hash are recorded in `build-info/build-info.txt`. The package also includes this README, the MIT `LICENSE` file and the memory validation document. NuGet license metadata points to the included license file.
 
-## Verificar um pacote NuGet
+Native library resolution works without `LD_LIBRARY_PATH`. Direct `dotnet pack` calls also check binary provenance and reject development artifacts built on the host.
+
+Increase `<Version>` in `src/BoustrophedonDotnetWrapper/BoustrophedonDotnetWrapper.csproj` before distributing an updated package. Use a new version to prevent consumers from reusing a cached package. When updating the core, commit its changes, update the submodule and the pinned commit in the build/check scripts, then rebuild and validate the package.
+
+## Verify a NuGet package
 
 ```sh
-./scripts/verify-package.sh artifacts/packages/BoustrophedonDotnetWrapper.0.1.0.nupkg
+./scripts/verify-package.sh artifacts/packages/BoustrophedonDotnetWrapper.0.1.3.nupkg
 ```
 
-O script cria um consumidor temporário que referencia apenas o pacote, restaura em cache NuGet isolado, executa uma chamada à API e também publica e executa para `linux-x64`. O wrapper é restaurado exclusivamente do feed local; nuget.org fornece somente os pacotes Microsoft de runtime/targeting, quando necessários pelo SDK do host. A execução remove `LD_LIBRARY_PATH`.
+The script creates a temporary consumer that references only the package, restores it into an isolated NuGet cache, calls the public API, then publishes and executes the consumer for `linux-x64`. The wrapper is restored exclusively from the local feed. Nuget.org supplies only Microsoft runtime/targeting packages when required by the host SDK. Execution removes `LD_LIBRARY_PATH`.
 
-## Testes
+## Tests
 
 ```sh
 ./scripts/build-native.sh --mode=host
 dotnet test
 ```
 
-Os testes usam a API pública com o core real. Para executar a suíte C existente:
+The tests exercise the public API with the real core. To run the C test suite:
 
 ```sh
 cmake -S native/BoustrophedonCore -B artifacts/core-tests -DCMAKE_BUILD_TYPE=Release
@@ -89,46 +93,48 @@ cmake --build artifacts/core-tests --parallel 2
 ctest --test-dir artifacts/core-tests --output-on-failure
 ```
 
-O diagnóstico de memória roda um consumidor da API sob Valgrind em um container separado:
+Memory validation runs an API consumer under Valgrind in a separate container:
 
 ```sh
 ./scripts/check-memory.sh 1000
 ```
 
-O relatório fica em `artifacts/memory/valgrind.xml`. Consulte [os resultados e limites da validação](docs/memory-validation.md).
+The report is written to `artifacts/memory/valgrind.xml`. See the [validation results and limitations](docs/memory-validation.md).
 
-## Contrato e falhas
+## Contract and failures
 
-O método é síncrono. Os arrays de entrada são preservados; não os modifique durante a chamada. Cada retorno é um array gerenciado independente, e toda memória do resultado nativo é liberada pelo wrapper. Chamadas independentes podem ocorrer em paralelo.
+The method is synchronous. Input arrays are preserved; do not modify them during a call. Each result is an independent managed array, and the wrapper frees all native result memory. Independent calls may run in parallel.
 
-| Condição | Exceção |
+| Condition | Exception |
 |---|---|
-| Array principal nulo | `ArgumentNullException` |
-| Largura ou sobreposição fora da faixa, ou não finita | `ArgumentOutOfRangeException` |
-| Coordenadas, polígonos ou geometria inválidos | `ArgumentException` |
-| Caminho não encontrado ou status nativo desconhecido | `InvalidOperationException` |
-| Limite de representação, incluindo espaçamento que sofre underflow | `OverflowException` |
-| Falha de alocação gerenciada ou nativa | `OutOfMemoryException` |
-| Processo fora de Linux x64 | `PlatformNotSupportedException` |
+| Null outer array | `ArgumentNullException` |
+| Out-of-range or nonfinite width or overlap | `ArgumentOutOfRangeException` |
+| Invalid coordinates, polygons or geometry | `ArgumentException` |
+| No route found or unknown native status | `InvalidOperationException` |
+| Representation limit, including spacing underflow | `OverflowException` |
+| Managed or native allocation failure | `OutOfMemoryException` |
+| Process outside Linux x64 | `PlatformNotSupportedException` |
 
-Falhas de carregamento da biblioteca preservam as exceções de interop do .NET. O pacote é destinado a glibc; a checagem de sistema/arquitetura não detecta musl antecipadamente.
+Library loading failures retain their .NET interop exceptions. The package targets glibc; the operating system and architecture check does not detect musl in advance.
 
-## Geometria e limites
+## Geometry and limitations
 
-Os anéis aceitam ambos os sentidos e um vértice de fechamento repetido. Auto-interseções, vértices consecutivos duplicados e obstáculos que se tocam, se sobrepõem ou se aninham são rejeitados. Start/end precisam estar no domínio livre; contornos são transitáveis.
+Rings accept either winding and a repeated closing vertex. Self-intersections, consecutive duplicate vertices, and touching, overlapping or nested obstacles are rejected. Start and end must lie in the free domain; boundary travel is allowed.
 
-A cobertura usa disco de diâmetro `width`, com espaçamento `width * (1 - overlapPercent / 100)`. A varredura é vertical, sem busca de ângulo. O algoritmo é determinístico e heurístico, sem garantia de mínimo global; conectores podem revisitar células. Não há conversão geográfica, raio físico do agente, raio mínimo de curva ou cancelamento.
+Coverage uses a disk of diameter `width`, with lane spacing `width * (1 - overlapPercent / 100)`. The sweep is vertical, with no angle search. After sweeping a cell, the route connects to the next cell or the destination without adding a complete boundary lap. Full disk coverage is verified for rectangular cells; lane spacing alone does not guarantee complete coverage near arbitrary inclined or sharp boundaries.
 
-O core usa geometria de ponto flutuante. Coordenadas muito grandes em relação aos detalhes podem exigir recentralização/reescala. Muitos vértices ou espaçamentos muito pequenos podem exigir CPU e memória consideráveis; não há garantia de tempo para entradas arbitrárias.
+The algorithm is deterministic and heuristic, with no global minimum guarantee; connectors may revisit cells. Geographic conversion, physical agent radius, minimum turning radius and cancellation are not provided.
 
-## Exemplo
+The core uses floating-point geometry. Large coordinates relative to feature sizes may require recentering or rescaling. Many vertices or very small lane spacing can require substantial CPU time and memory; there is no runtime guarantee for arbitrary inputs.
 
-O projeto [examples/ConsoleExample](examples/ConsoleExample) mostra uma chamada direta à API. Depois de gerar a biblioteca nativa, execute:
+## Example
+
+The [examples/ConsoleExample](examples/ConsoleExample) project demonstrates a direct API call. After building the native library, run:
 
 ```sh
 dotnet run --project examples/ConsoleExample/ConsoleExample.csproj
 ```
 
-## Licença
+## License
 
-Distribuído sob a licença [MIT](LICENSE).
+Distributed under the [MIT License](LICENSE).

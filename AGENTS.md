@@ -1,26 +1,25 @@
-# Visão Geral
+# Overview
 
-Este projeto é um wrapper da implementação do algoritmo Boustrophedon desenvolvido em C. A implementação desenvolvida é o BoustrophedonCore. O objeto desse wrapper é apresentar uma API para uma linguagem de alto nível, nesse caso, o ambiente .NET. Esse wrapper deverá ser um pacote do .NET.
+This project wraps the C implementation of the Boustrophedon algorithm in BoustrophedonCore. It exposes a high-level .NET API and is distributed as a NuGet package.
 
-# Assinatura da função
+# Public API
 
-A implementação deverá ter uma função de ponto de entrada, ou seja, uma única função que outros código irão chamar. Isso não significa que todo o código deve ficar em uma única função. Abaixo o pseudo código da assinatura da função.
+Expose a single public operation on the `Boustrophedon` class. Conceptual signature:
 
+```text
+generateWaypoints(Start Point, End Point, Area Vertices, Obstacle Vertices, Coverage Width, Overlap): Path;
 ```
-generateWaypoints(Ponto Inicial, Ponto Final, Vertices da Area, Vertices dos Bloqueios, Largura de atuação, Sobreposição): Caminho;
-```
-**Ponto Inicial**: Representado por dois valores, {x: 10, y: 10}. Será de onde o agente autonomo irá começar o percurso.
-**Ponto Final**: Representado por dois valores, {x: 10, y: 10}. Será de onde o agente autonomo irá terminar o percurso.
-**Vertices da Area**: Representado por vários valores, [{x: 10, y:10}, {x:10, y: 9}]. Representa os vertices do poligono a ser percorrido.
-**Vertices dos Bloqueios**: Representado por vários valores, [[{x: 10, y:10}, {x:10, y: 9}], [{x: 10, y:10}, {x:10, y: 9}]]. Representa os vertices do obstáculos.
-**Largura de atuação**: Representado por um único valor, 10. Representa a largura total da visão do agente autonomo, valor da direita + valor da esquerda.
-**Sobreposição**: Representado por um único valor, 0 a 100. Representa o quanto as larguras de visão devem se sobrepor.
-**Caminho**: Representado por vários valores, [{x: 10, y:10}, {x:10, y: 9}]. Representa o caminho gerado pelo algoritmo.
 
-Está deverá ser a única função pública do Wrapper. Ela estará contida na classe Boustrophedon.
+- **Start point:** two coordinates, such as `{x: 10, y: 10}`, where the autonomous agent starts the route.
+- **End point:** two coordinates where the agent finishes the route.
+- **Area vertices:** a sequence of points describing the polygon to cover, such as `[{x: 10, y: 10}, {x: 10, y: 9}, ...]`.
+- **Obstacle vertices:** a sequence of polygons, each represented by its vertices, such as `[[{x: 10, y: 10}, {x: 10, y: 9}, ...], ...]`.
+- **Coverage width:** the full sensing or working width, including both the left and right sides of the agent.
+- **Overlap:** the percentage by which adjacent coverage swaths overlap. The API accepts `[0, 100)`.
+- **Path:** the generated sequence of points, such as `[{x: 10, y: 10}, {x: 10, y: 9}, ...]`.
 
-# Práticas de codificação
+# Coding practices
 
-- Utilizar convetional commits e sempre commitar quando tiver terminado a menor unidade de uma atividade funcional.
-- Utilizar nomes de variáveis, funções etc de forma que fiquem legíveis.
-- Utilizar TDD para codificar primeiro um teste funcional e depois criar a funcionalidade.
+- Use Conventional Commits and commit each completed functional unit of work.
+- Use readable names for variables, functions and other identifiers.
+- Use TDD: write a failing functional test before implementing behavior.
