@@ -17,6 +17,13 @@ public static class Boustrophedon
     public static unsafe Point[] GenerateWaypoints(Point start, Point end, Point[] area,
         Point[][] obstacles, double width, double overlapPercent)
     {
+        ArgumentNullException.ThrowIfNull(area);
+        ArgumentNullException.ThrowIfNull(obstacles);
+        if (!double.IsFinite(width) || width <= 0)
+            throw new ArgumentOutOfRangeException(nameof(width), "Width must be finite and positive.");
+        if (!double.IsFinite(overlapPercent) || overlapPercent < 0 || overlapPercent >= 100)
+            throw new ArgumentOutOfRangeException(nameof(overlapPercent), "Overlap must be finite and in [0, 100).");
+
         int pointCount = area.Length;
         foreach (Point[] obstacle in obstacles)
             pointCount = checked(pointCount + obstacle.Length);
