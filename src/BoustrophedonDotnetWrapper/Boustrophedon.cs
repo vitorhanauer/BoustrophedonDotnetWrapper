@@ -14,6 +14,13 @@ public static class Boustrophedon
     /// <param name="overlapPercent">Coverage overlap in [0, 100).</param>
     /// <returns>An independently owned array starting and ending at the requested points.</returns>
     /// <remarks>Do not mutate the inputs during this synchronous call. Boundaries are traversable.</remarks>
+    /// <exception cref="ArgumentNullException">An input array is null.</exception>
+    /// <exception cref="ArgumentException">Arguments or geometry are invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Width or overlap is outside its valid range.</exception>
+    /// <exception cref="InvalidOperationException">No path can be generated, or the native status is unknown.</exception>
+    /// <exception cref="OverflowException">The geometry or path exceeds representation limits.</exception>
+    /// <exception cref="OutOfMemoryException">A managed or native allocation failed.</exception>
+    /// <exception cref="PlatformNotSupportedException">The process is not Linux x64.</exception>
     public static unsafe Point[] GenerateWaypoints(Point start, Point end, Point[] area,
         Point[][] obstacles, double width, double overlapPercent)
     {
@@ -35,6 +42,10 @@ public static class Boustrophedon
             ValidatePolygon(obstacle, nameof(obstacles));
             pointCount = checked(pointCount + obstacle.Length);
         }
+        if (pointCount > Array.MaxLength)
+            throw new OverflowException("Input vertices cannot fit in a managed array.");
+        if (!OperatingSystem.IsLinux() || System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture != System.Runtime.InteropServices.Architecture.X64)
+            throw new PlatformNotSupportedException("This package supports Linux x64 with glibc only.");
 
         var points = new NativePoint[pointCount];
         var polygons = new NativePolygon[obstacles.Length];
@@ -61,8 +72,7 @@ public static class Boustrophedon
                 int status = NativeMethods.GenerateWaypoints(ToNative(start), ToNative(end),
                     new NativePolygon { Vertices = pointBuffer, Count = (nuint)area.Length },
                     polygonBuffer, (nuint)obstacles.Length, width, overlapPercent, &path);
-                if (status != 0)
-                    throw new InvalidOperationException($"Native generation failed with status {status}.");
+                ThrowForStatus(status);
 
                 if (path.Count > (nuint)Array.MaxLength)
                     throw new OverflowException("The native path cannot fit in a managed array.");
@@ -80,6 +90,20 @@ public static class Boustrophedon
     }
 
     private static NativePoint ToNative(Point point) => new() { X = point.X, Y = point.Y };
+
+    private static void ThrowForStatus(int status)
+    {
+        switch (status)
+        {
+            case 0: return;
+            case 1: throw new ArgumentException("The native planner rejected an argument.");
+            case 2: throw new ArgumentException("Invalid polygon geometry or start/end outside the free domain.");
+            case 3: throw new InvalidOperationException("The native planner could not find a path.");
+            case 4: throw new OverflowException("The native planner exceeded a representation limit.");
+            case 5: throw new OutOfMemoryException("The native planner could not allocate memory.");
+            default: throw new InvalidOperationException($"Unknown native planner status: {status}.");
+        }
+    }
 
     private static void ValidatePoint(Point point, string parameterName)
     {
