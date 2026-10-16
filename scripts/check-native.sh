@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 wrapper_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 core_dir="$wrapper_root/native/BoustrophedonCore"
-expected_commit="edbab6978e0b33cbc9cf1b88815c19111429303b"
+expected_commit="2d3af904cd785b558b9e7bd5fc9f4a7103f2042e"
 artifact_dir="$wrapper_root/artifacts/native/linux-x64"
 library="$artifact_dir/libboustrophedon.so"
 info="$artifact_dir/build-info.txt"

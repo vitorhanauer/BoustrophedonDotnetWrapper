@@ -3,7 +3,7 @@ set -Eeuo pipefail
 
 wrapper_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)"
 project="$wrapper_root/src/BoustrophedonDotnetWrapper/BoustrophedonDotnetWrapper.csproj"
-expected_commit="edbab6978e0b33cbc9cf1b88815c19111429303b"
+expected_commit="2d3af904cd785b558b9e7bd5fc9f4a7103f2042e"
 core_dir="$wrapper_root/native/BoustrophedonCore"
 packages_dir="$wrapper_root/artifacts/packages"
 

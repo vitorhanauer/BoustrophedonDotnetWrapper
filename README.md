@@ -32,7 +32,7 @@ Point[] route = Boustrophedon.GenerateWaypoints(
 - .NET SDK 10.
 - Git e CMake para compilar localmente.
 - Docker para gerar a biblioteca distribuível baseada em Debian 12.
-- Submódulo `native/BoustrophedonCore` no commit `edbab6978e0b33cbc9cf1b88815c19111429303b`.
+- Submódulo `native/BoustrophedonCore` no commit `2d3af904cd785b558b9e7bd5fc9f4a7103f2042e`.
 
 Inicialize o submódulo após obter o repositório do wrapper:
 

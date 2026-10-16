@@ -2,7 +2,7 @@
 
 `scripts/check-memory.sh [iterações]` constrói um consumidor .NET 10 e executa chamadas repetidas à API pública sob Valgrind Memcheck dentro de um container limitado a 1 GiB. O padrão são 1.000 iterações; o script aceita de 1 a 10.000.
 
-O consumidor usa uma área quadrada de 100 × 100, sem obstáculos, largura 10, sobreposição 0% e início/fim nos cantos. Cada iteração chama `Boustrophedon.GenerateWaypoints`; o wrapper copia o caminho para managed memory e executa `freeWaypoints` no bloco `finally`. O core do submódulo fixado em `edbab6978e0b33cbc9cf1b88815c19111429303b` é reconstruído com símbolos de depuração no container para que os stacks de alocação identifiquem `libboustrophedon.so`.
+O consumidor usa uma área quadrada de 100 × 100, sem obstáculos, largura 10, sobreposição 0% e início/fim nos cantos. Cada iteração chama `Boustrophedon.GenerateWaypoints`; o wrapper copia o caminho para managed memory e executa `freeWaypoints` no bloco `finally`. O core do submódulo fixado em `2d3af904cd785b558b9e7bd5fc9f4a7103f2042e` é reconstruído com símbolos de depuração no container para que os stacks de alocação identifiquem `libboustrophedon.so`.
 
 O script exige que o submódulo esteja limpo e no commit fixado antes de iniciar o Docker. O Memcheck grava XML completo em `artifacts/memory/valgrind.xml`. O verificador falha para blocos definitivamente, indiretamente ou possivelmente perdidos, ou para `InvalidRead`, `InvalidWrite`, `InvalidFree` e `MismatchedFree`, quando o stack do erro contém `libboustrophedon.so`. Eventos sem esse frame ficam fora do critério do core; assim, a memória interna do runtime .NET não gera falhas por si só. Não há assertion sobre RSS ou uso máximo de memória.
 
