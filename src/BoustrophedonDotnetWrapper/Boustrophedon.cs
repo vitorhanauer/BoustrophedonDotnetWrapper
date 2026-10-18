@@ -13,7 +13,7 @@ public static class Boustrophedon
     /// <param name="width">Positive full coverage diameter, in the coordinate length unit.</param>
     /// <param name="overlapPercent">Coverage overlap in [0, 100).</param>
     /// <returns>An independently owned array starting and ending at the requested points.</returns>
-    /// <remarks>Do not mutate the inputs during this synchronous call. Boundaries are traversable.</remarks>
+    /// <remarks>Do not mutate the inputs during this synchronous call. Coverage routes are offset from area and obstacle boundaries. Explicit start/end points are preserved, including points on a boundary.</remarks>
     /// <exception cref="ArgumentNullException">An input array is null.</exception>
     /// <exception cref="ArgumentException">Arguments or geometry are invalid.</exception>
     /// <exception cref="ArgumentOutOfRangeException">Width or overlap is outside its valid range.</exception>

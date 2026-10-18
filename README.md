@@ -135,9 +135,11 @@ Library loading failures retain their .NET interop exceptions. The package targe
 
 ## Geometry and limitations
 
-Rings accept either winding and a repeated closing vertex. Self-intersections, consecutive duplicate vertices, and touching, overlapping or nested obstacles are rejected. Start and end must lie in the free domain; boundary travel is allowed.
+Rings accept either winding and a repeated closing vertex. Self-intersections, consecutive duplicate vertices, and touching, overlapping or nested obstacles are rejected. Start and end must lie in the free domain. Coverage routes and inter-cell connectors use an inset area and expanded obstacles. Explicit start/end coordinates are preserved, including points on the original boundaries; their approach/departure segments may cross the margin while remaining in the original free domain.
 
-Coverage uses a disk of diameter `width`, with lane spacing `width * (1 - overlapPercent / 100)`. The sweep is vertical, with no angle search. After sweeping a cell, the route connects to the next cell or the destination without adding a complete boundary lap. Full disk coverage is verified for rectangular cells; lane spacing alone does not guarantee complete coverage near arbitrary inclined or sharp boundaries.
+Coverage uses a disk of diameter `width`, with requested lane spacing `s = width * (1 - overlapPercent / 100)`. The sweep is vertical, with no angle search. After sweeping a cell, the route connects to the next cell or the destination without adding a complete boundary lap. Full disk coverage is verified for rectangular domains, including rectangular obstacles, with samples at edges, corners and interiors; lane spacing alone does not guarantee complete coverage near arbitrary inclined or sharp boundaries.
+
+The nominal boundary margin is `d = s / (2 * sqrt(2))`. Sharp corners can reduce it to cap vertex displacement at `s / 2`. If offsets intersect or close a passage, the margin is repeatedly halved until the domain remains valid and connected. Actual lane spacing is at most `min(s, sqrt(width * width - 4 * d * d))` to retain rectangular edge coverage, which can increase the number of lanes at low overlap. The margin is not a guaranteed physical vehicle clearance. Numerically unrepresentable offsets raise `OverflowException`.
 
 The algorithm is deterministic and heuristic, with no global minimum guarantee; connectors may revisit cells. Geographic conversion, physical agent radius, minimum turning radius and cancellation are not provided.
 

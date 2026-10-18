@@ -194,6 +194,100 @@ public class PathBehaviorTests
         Assert.Equal(start, second[0]);
     }
 
+    [Theory]
+    [InlineData(0, false)]
+    [InlineData(25, false)]
+    [InlineData(75, false)]
+    [InlineData(0, true)]
+    [InlineData(25, true)]
+    [InlineData(75, true)]
+    public void GenerateWaypoints_KeepsBoundaryClearanceAndCoversRectangleEdges(
+        double overlapPercent, bool includeObstacle)
+    {
+        Point[] area = Rectangle(0, 0, 10, 10);
+        Point[][] obstacles = includeObstacle ? [Rectangle(4, 3, 6, 7)] : [];
+        var start = new Point(1, 1);
+        var end = new Point(9, 9);
+        const double width = 1;
+        double margin = width * (1 - overlapPercent / 100) / (2 * Math.Sqrt(2));
+
+        Point[] path = Boustrophedon.GenerateWaypoints(
+            start, end, area, obstacles, width, overlapPercent);
+
+        Assert.Equal(start, path[0]);
+        Assert.Equal(end, path[^1]);
+        AssertSafePath(path, area, obstacles);
+        foreach (Point point in path)
+        {
+            double outerDistance = Math.Min(Math.Min(point.X, 10 - point.X),
+                Math.Min(point.Y, 10 - point.Y));
+            Assert.True(outerDistance >= margin - 1e-9,
+                $"Waypoint {point} violates outer boundary clearance {margin}.");
+            foreach (Point[] obstacle in obstacles)
+                Assert.True(DistanceToPath([.. obstacle, obstacle[0]], point) >= margin - 1e-9);
+        }
+        // Together with waypoint-to-edge distances, these check separation of
+        // every obstacle edge from every route segment, including connectors.
+        foreach (Point[] obstacle in obstacles)
+        foreach (Point corner in obstacle)
+            Assert.True(DistanceToPath(path, corner) >= margin - 1e-9);
+
+        var samples = new List<Point>();
+        for (int x = 0; x <= 100; x++)
+        for (int y = 0; y <= 100; y++)
+        {
+            var sample = new Point(x / 10.0, y / 10.0);
+            if (!obstacles.Any(obstacle => IsStrictlyInside(obstacle, sample)))
+                samples.Add(sample);
+        }
+        AssertCoversSamples(path, samples.ToArray(), width / 2);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GenerateWaypoints_FromBoundary_PreservesTerminalAndUsesShortApproach(bool onObstacle)
+    {
+        Point[] area = Rectangle(0, 0, 10, 10);
+        Point[][] obstacles = onObstacle ? [Rectangle(4, 3, 6, 7)] : [];
+        var start = onObstacle ? new Point(4, 5) : new Point(5, 0);
+        var end = new Point(9, 9);
+        double margin = 1 / (2 * Math.Sqrt(2));
+
+        Point[] path = Boustrophedon.GenerateWaypoints(start, end, area, obstacles, 1, 0);
+
+        Assert.Equal(start, path[0]);
+        Assert.Equal(end, path[^1]);
+        double dx = path[1].X - start.X;
+        double dy = path[1].Y - start.Y;
+        Assert.Equal(margin, Math.Sqrt(dx * dx + dy * dy), precision: 8);
+        AssertSafePath(path, area, obstacles);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void GenerateWaypoints_WhenNominalMarginClosesDomain_ReducesMarginAndPreservesConnectivity(
+        bool tinyArea)
+    {
+        Point[] area = tinyArea ? Rectangle(0, 0, 0.1, 0.1) :
+        [
+            new Point(0, 0), new Point(4, 0), new Point(4, 1.9),
+            new Point(6, 1.9), new Point(6, 0), new Point(10, 0),
+            new Point(10, 4), new Point(6, 4), new Point(6, 2.1),
+            new Point(4, 2.1), new Point(4, 4), new Point(0, 4)
+        ];
+        var start = tinyArea ? new Point(0.02, 0.02) : new Point(1, 2);
+        var end = tinyArea ? new Point(0.08, 0.08) : new Point(9, 2);
+
+        Point[] path = Boustrophedon.GenerateWaypoints(start, end, area, [], 1, 0);
+
+        Assert.Equal(start, path[0]);
+        Assert.Equal(end, path[^1]);
+        AssertSafePath(path, area, []);
+        Assert.All(path, point => Assert.True(IsStrictlyInside(area, point)));
+    }
+
     private static Point[] Rectangle(double minX, double minY, double maxX, double maxY) =>
     [
         new Point(minX, minY),

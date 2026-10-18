@@ -84,6 +84,13 @@ if (path.Length < 2 || path[0] != new Point(0, 0) || path[^1] != new Point(5, 5)
     throw new InvalidOperationException("O caminho não preservou os pontos inicial e final.");
 if (path.Any(point => !double.IsFinite(point.X) || !double.IsFinite(point.Y)))
     throw new InvalidOperationException("O caminho contém coordenadas não finitas.");
+double margin = 1 / (2 * Math.Sqrt(2));
+foreach (Point point in path[1..^1])
+{
+    double distance = Math.Min(Math.Min(point.X, 5 - point.X), Math.Min(point.Y, 5 - point.Y));
+    if (distance < margin - 1e-9)
+        throw new InvalidOperationException("O pacote não respeitou o afastamento das bordas.");
+}
 CS
 
 env -u LD_LIBRARY_PATH dotnet run --project "$tmp_dir/consumer/Consumer.csproj" --no-restore

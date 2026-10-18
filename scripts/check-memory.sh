@@ -17,7 +17,7 @@ image="boustrophedon-memory-check:local"
 script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 project_dir=$(CDPATH= cd -- "$script_dir/.." && pwd)
 core_dir="$project_dir/native/BoustrophedonCore"
-expected_core_commit="856378566266e83bd16314aee9a902ca5e3a8662"
+expected_core_commit="d27867f1f60ffe8af7c5c0ba20f85cf88dc67933"
 
 if [ ! -d "$core_dir/.git" ] && [ ! -f "$core_dir/.git" ]; then
     echo "native/BoustrophedonCore submodule is missing." >&2
